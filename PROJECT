@@ -1,0 +1,7 @@
+domain: kink.x-k8s.io
+repo: github.com/njhale/kink
+resources:
+- group: kink
+  kind: Cluster
+  version: v1alpha1
+version: "2"
