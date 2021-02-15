@@ -37,9 +37,9 @@ type ClusterReconciler struct {
 // +kubebuilder:rbac:groups=kink.kink.x-k8s.io,resources=clusters,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=kink.kink.x-k8s.io,resources=clusters/status,verbs=get;update;patch
 
-func (r *ClusterReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	_ = context.Background()
-	_ = r.Log.WithValues("cluster", req.NamespacedName)
+func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	log := r.Log.WithValues("cluster", req.NamespacedName)
+	log.Info("Reconciling")
 
 	// your logic here
 

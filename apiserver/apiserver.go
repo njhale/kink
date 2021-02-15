@@ -1,7 +1,6 @@
 package apiserver
 
 import (
-	"go.etcd.io/etcd/client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -10,6 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/version"
 	"k8s.io/apiserver/pkg/registry/rest"
 	genericapiserver "k8s.io/apiserver/pkg/server"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/njhale/kink/api/v1alpha1"
 	kinkregistry "github.com/njhale/kink/registry"
@@ -94,12 +94,15 @@ func (c completedConfig) New() (*KinkServer, error) {
 		GenericAPIServer: genericServer,
 	}
 
-	apiGroupInfo := genericapiserver.NewDefaultAPIGroupInfo(v1alpha1.GroupVersion.Group, Scheme, metav1.ParameterCodec, Codecs)
-
+	apiRegistry, err := clusterregistry.NewClusterAPIProxy(c.ExtraConfig.Client)
+	if err != nil {
+		return nil, err
+	}
 	v1alpha1storage := map[string]rest.Storage{
 		"clusters":     kinkregistry.RESTInPeace(clusterregistry.NewREST(Scheme, c.GenericConfig.RESTOptionsGetter)),
-		"clusters/api": kinregistry.RESTInPeace(clusterregistry.NewClusterAPIProxy(c.ExtraConfig.client)),
+		"clusters/api": apiRegistry,
 	}
+	apiGroupInfo := genericapiserver.NewDefaultAPIGroupInfo(v1alpha1.GroupVersion.Group, Scheme, metav1.ParameterCodec, Codecs)
 	apiGroupInfo.VersionedResourcesStorageMap["v1alpha1"] = v1alpha1storage
 
 	if err := s.GenericAPIServer.InstallAPIGroup(&apiGroupInfo); err != nil {
